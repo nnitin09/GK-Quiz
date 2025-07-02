@@ -1,0 +1,490 @@
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GK Quiz</title>
+<style>
+  body {
+    background: linear-gradient(-45deg, #800080, #ba55d3, #4b0082, #9932cc);
+    background-size: 400% 400%;
+    animation: gradientBG 15s ease infinite;
+    color: #fff;
+    font-family: sans-serif;
+    margin: 0;
+    padding: 0;
+  }
+  @keyframes gradientBG {
+    0% {background-position: 0% 50%}
+    50% {background-position: 100% 50%}
+    100% {background-position: 0% 50%}
+  }
+  .container {
+    max-width: 600px;
+    margin: auto;
+    padding: 20px;
+    text-align: center;
+  }
+  .question {
+  background: #9932cc;
+  font-size: 2rem;
+  font-weight: bold;
+  border: 3px solid #fff;
+  border-radius: 16px;
+  margin: 20px auto;
+  padding: 30px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+  animation: fadeIn 0.8s ease;
+  width: 90%;  /* wider question box */
+  max-width: 800px;
+}
+
+  .option {
+  background: #f5f5f5;
+  color: #000;
+  padding: 20px;
+  border-radius: 12px;
+  margin: 12px 8px;
+  cursor: pointer;
+  transition: transform 0.3s, background 0.3s;
+  display: inline-block;
+  min-width: 60%;  /* previously 45% */
+  font-size: 1.3rem;
+  border: 2px solid #800080;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+}
+
+  .option:hover {
+    background: #d8bfd8;
+    transform: scale(1.1);
+  }
+  .button, .subscribe {
+    padding: 16px 30px;
+    border-radius: 12px;
+    margin: 10px;
+    cursor: pointer;
+    font-size: 1.4rem;
+    transition: transform 0.3s, background 0.3s;
+  }
+  .button {
+    background: #4b0082;
+    color: #fff;
+    border: none;
+  }
+  .button:hover {
+    background: #9932cc;
+    transform: scale(1.05);
+  }
+  .subscribe {
+    background: #ff1493;
+    color: #fff;
+    text-decoration: none;
+  }
+  .subscribe:hover {
+    background: #ff69b4;
+  }
+  @keyframes fadeIn {
+    from {opacity: 0; transform: scale(0.8);}
+    to {opacity: 1; transform: scale(1);}
+  }
+  #timer {
+    font-size: 1.2rem;
+    margin-bottom: 10px;
+  }
+  #progress {
+    width: 100%;
+    background: #eee;
+    border-radius: 10px;
+    margin-top: 15px;
+  }
+  #progress-bar {
+    height: 15px;
+    background: #32CD32;
+    border-radius: 10px;
+    width: 0%;
+    transition: width 0.5s ease;
+  }
+  @keyframes bounce {
+    0%, 100% {transform: scale(1);}
+    50% {transform: scale(1.3);}
+  }
+</style>
+</head><body>
+<div class="container" id="startPage">
+  <h1>General Knowledge Quiz</h1>
+  <p style="font-size:1.1rem;line-height:1.5;margin-top:10px;">
+ Welcome to our General Knowledge Quiz Practice!This website is designed to help you learn and test your<br>
+ skills with interesting and engaging general knowledge questions. Explore a wide range of topics and 
+ challenge yourself to improve your knowledge every day.<br>
+👉 Subscribe to our YouTube channel for even more fun and challenging GK quiz questions, videos, and updates.<br>
+👉 Share this General Knowledge Quiz with your friends and family to help them learn and enjoy too!<br>
+    
+  </p>
+  <button class="button" onclick="startQuiz(event)">Play</button>
+  <button class="button" onclick="speak('Welcome to the quiz. Click on the Play button to start the quiz.')">Instructions</button>
+  <a class="subscribe" href="https://youtube.com/@nitish7629" target="_blank" onclick="animateBounce(event.target)">📺 Subscribe</a>
+  <p style="margin-top:20px;font-size:0.9rem;color:#ddd;">&copy; 2025 All rights reserved</p>
+</div>
+<div class="container" id="quiz" style="display:none">
+  <div id="timer"></div>
+  <div id="progress"><div id="progress-bar"></div></div>
+</div>
+
+<!-- Preload correct/wrong sounds -->
+<audio id="correctSound" preload="auto">
+  <source src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_7fc8a4ef50.mp3?filename=success-1-6297.mp3" type="audio/mpeg">
+</audio>
+<audio id="wrongSound" preload="auto">
+  <source src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_c82a118d2f.mp3?filename=error-1-32709.mp3" type="audio/mpeg">
+</audio>
+
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+<script>
+const questions = [
+  { q: "What is the capital of India?", o: ["Delhi", "Mumbai", "Kolkata", "Chennai"], a: "Delhi" },
+  { q: "Which planet is known as the Red Planet?", o: ["Earth", "Venus", "Mars", "Jupiter"], a: "Mars" },
+  { q: "Who invented the telephone?", o: ["Alexander Graham Bell", "Thomas Edison", "James Watt", "Isaac Newton"], a: "Alexander Graham Bell" },
+  { q: "Who is the Father of the Nation in India?", o: ["Nehru", "Patel", "Mahatma Gandhi", "Ambedkar"], a: "Mahatma Gandhi" },
+  { q: "Which gas do plants absorb?", o: ["Oxygen", "Carbon dioxide", "Nitrogen", "Hydrogen"], a: "Carbon dioxide" },
+  { q: "Which is the largest ocean?", o: ["Atlantic", "Indian", "Pacific", "Arctic"], a: "Pacific" },
+  { q: "Who wrote the Ramayana?", o: ["Valmiki", "Vyasa", "Kalidasa", "Tulsidas"], a: "Valmiki" },
+  { q: "Which is the largest desert?", o: ["Kalahari", "Sahara", "Gobi", "Thar"], a: "Sahara" },
+  { q: "What is the boiling point of water?", o: ["90°C", "80°C", "100°C", "120°C"], a: "100°C" },
+  { q: "Which is the smallest continent?", o: ["Europe", "Australia", "Africa", "Asia"], a: "Australia" },
+  { q: "Who was the first President of India?", o: ["Rajendra Prasad", "Nehru", "Patel", "Gandhi"], a: "Rajendra Prasad" },
+  { q: "Which is the largest country by area?", o: ["USA", "China", "Canada", "Russia"], a: "Russia" },
+  { q: "Which is the fastest land animal?", o: ["Lion", "Tiger", "Cheetah", "Leopard"], a: "Cheetah" },
+  { q: "Which vitamin is produced in the skin by sunlight?", o: ["A", "B", "C", "D"], a: "D" },
+  { q: "Who invented the light bulb?", o: ["Newton", "Faraday", "Edison", "Tesla"], a: "Edison" },
+  { q: "What is the largest mammal?", o: ["Elephant", "Blue Whale", "Giraffe", "Hippopotamus"], a: "Blue Whale" },
+  { q: "Who wrote the Mahabharata?", o: ["Valmiki", "Kalidasa", "Tulsidas", "Vyasa"], a: "Vyasa" },
+  { q: "What is the chemical symbol for Gold?", o: ["Au", "Ag", "Gd", "Go"], a: "Au" },
+  { q: "Which country hosted the 2016 Olympics?", o: ["China", "Japan", "Brazil", "UK"], a: "Brazil" },
+  { q: "What is the tallest mountain in the world?", o: ["K2", "Kanchenjunga", "Mount Everest", "Lhotse"], a: "Mount Everest" },
+  { q: "Which is the longest river?", o: ["Ganga", "Amazon", "Yangtze", "Nile"], a: "Nile" },
+  { q: "Who discovered penicillin?", o: ["Pasteur", "Darwin", "Fleming", "Jenner"], a: "Fleming" },
+  { q: "Which planet has rings?", o: ["Mars", "Jupiter", "Saturn", "Neptune"], a: "Saturn" },
+  { q: "What is H2O?", o: ["Oxygen", "Hydrogen", "Water", "Helium"], a: "Water" },
+  { q: "Who painted the Mona Lisa?", o: ["Michelangelo", "Picasso", "Leonardo da Vinci", "Raphael"], a: "Leonardo da Vinci" },
+  { q: "What is the smallest bone in the human body?", o: ["Femur", "Stapes", "Ulna", "Fibula"], a: "Stapes" },
+  { q: "Which Indian festival is known as Festival of Lights?", o: ["Holi", "Dussehra", "Diwali", "Eid"], a: "Diwali" },
+  { q: "Which is the national sport of India?", o: ["Cricket", "Kabaddi", "Hockey", "Football"], a: "Hockey" },
+  { q: "Which country invented paper?", o: ["Egypt", "China", "Greece", "India"], a: "China" },
+  { q: "Which gas is most abundant in Earth’s atmosphere?", o: ["Oxygen", "Carbon dioxide", "Nitrogen", "Argon"], a: "Nitrogen" },
+  { q: "Who was the first man to step on the Moon?", o: ["Buzz Aldrin", "Yuri Gagarin", "Neil Armstrong", "Michael Collins"], a: "Neil Armstrong" },
+  { q: "Which is the largest island?", o: ["Madagascar", "Borneo", "New Guinea", "Greenland"], a: "Greenland" },
+  { q: "Who discovered gravity?", o: ["Faraday", "Einstein", "Newton", "Galileo"], a: "Newton" },
+  { q: "Which Indian city is known as Pink City?", o: ["Udaipur", "Jodhpur", "Jaipur", "Jaisalmer"], a: "Jaipur" },
+  { q: "Which is the smallest planet?", o: ["Mars", "Venus", "Mercury", "Earth"], a: "Mercury" },
+  { q: "Who is known as Iron Man of India?", o: ["Rajendra Prasad", "Nehru", "Sardar Patel", "Gandhi"], a: "Sardar Patel" },
+  { q: "Which blood group is universal donor?", o: ["A", "B", "AB", "O"], a: "O" },
+  { q: "What is the square root of 144?", o: ["10", "12", "14", "16"], a: "12" },
+  { q: "Which instrument measures earthquakes?", o: ["Thermometer", "Anemometer", "Barometer", "Seismograph"], a: "Seismograph" },
+  { q: "What is the currency of Japan?", o: ["Yuan", "Dollar", "Yen", "Won"], a: "Yen" },
+  { q: "Who is known as Missile Man of India?", o: ["Homi Bhabha", "CV Raman", "APJ Abdul Kalam", "K Sivan"], a: "APJ Abdul Kalam" },
+  { q: "Which is the largest flower?", o: ["Rose", "Lily", "Sunflower", "Rafflesia"], a: "Rafflesia" },
+  { q: "Which state is known as Land of Five Rivers?", o: ["Haryana", "Punjab", "Uttar Pradesh", "Bihar"], a: "Punjab" },
+  { q: "Which Mughal emperor built the Taj Mahal?", o: ["Akbar", "Jahangir", "Shah Jahan", "Aurangzeb"], a: "Shah Jahan" },
+  { q: "Which is the largest bird?", o: ["Eagle", "Vulture", "Ostrich", "Emu"], a: "Ostrich" },
+  { q: "Which is the longest bone?", o: ["Ulna", "Femur", "Tibia", "Fibula"], a: "Femur" },
+  { q: "Who discovered radioactivity?", o: ["Curie", "Rutherford", "Becquerel", "Einstein"], a: "Becquerel" },
+  { q: "Which Indian city is called City of Joy?", o: ["Mumbai", "Kolkata", "Chennai", "Delhi"], a: "Kolkata" },
+  { q: "Which is the largest freshwater lake?", o: ["Lake Victoria", "Lake Superior", "Lake Baikal", "Lake Tanganyika"], a: "Lake Superior" },
+  { q: "Which vitamin is good for eyes?", o: ["A", "B", "C", "D"], a: "A" },
+  { q: "What is the hardest substance?", o: ["Gold", "Iron", "Diamond", "Platinum"], a: "Diamond" },
+  { q: "Which is the biggest island country?", o: ["Madagascar", "Greenland", "Indonesia", "Japan"], a: "Indonesia" },
+  { q: "Which Indian river is holy in Hinduism?", o: ["Yamuna", "Godavari", "Ganga", "Cauvery"], a: "Ganga" },
+  { q: "Which element has symbol Fe?", o: ["Lead", "Gold", "Iron", "Zinc"], a: "Iron" },
+  { q: "Who is known as Nightingale of India?", o: ["Indira Gandhi", "Sarojini Naidu", "Annie Besant", "Lata Mangeshkar"], a: "Sarojini Naidu" },
+  { q: "Which part of the plant conducts photosynthesis?", o: ["Root", "Stem", "Leaf", "Flower"], a: "Leaf" },
+  { q: "What is the freezing point of water?", o: ["0°C", "32°C", "100°C", "50°C"], a: "0°C" },
+  { q: "Which is the largest IT company in India?", o: ["Infosys", "TCS", "Wipro", "HCL"], a: "TCS" },
+  { q: "What is the longest highway in India?", o: ["NH44", "NH48", "NH7", "NH19"], a: "NH44" },
+  { q: "Who invented the steam engine?", o: ["Newton", "James Watt", "Faraday", "Edison"], a: "James Watt" },
+  { q: "Who gave the law of motion?", o: ["Einstein", "Galileo", "Newton", "Faraday"], a: "Newton" },
+  { q: "Which planet is closest to Sun?", o: ["Venus", "Mercury", "Mars", "Earth"], a: "Mercury" },
+  { q: "Which animal lays eggs?", o: ["Dog", "Cat", "Cow", "Duck"], a: "Duck" },
+  { q: "Which is the tallest building in the world?", o: ["Shanghai Tower", "Burj Khalifa", "One WTC", "Taipei 101"], a: "Burj Khalifa" },
+  { q: "Which is the smallest bird?", o: ["Sparrow", "Crow", "Hummingbird", "Parrot"], a: "Hummingbird" },
+  { q: "Who is known as the Flying Sikh?", o: ["Milkha Singh", "PT Usha", "K D Jadhav", "Kapil Dev"], a: "Milkha Singh" },
+  { q: "Which festival is known as Festival of Colors?", o: ["Diwali", "Eid", "Holi", "Navratri"], a: "Holi" },
+  { q: "Which country gifted the Statue of Liberty to USA?", o: ["Germany", "France", "Spain", "Italy"], a: "France" },
+  { q: "Which is the largest muscle in human body?", o: ["Gluteus maximus", "Biceps", "Quadriceps", "Trapezius"], a: "Gluteus maximus" },
+  { q: "What is the unit of electric current?", o: ["Ohm", "Watt", "Ampere", "Volt"], a: "Ampere" },
+  { q: "What is the SI unit of force?", o: ["Watt", "Newton", "Joule", "Pascal"], a: "Newton" },
+  { q: "Who is the Supreme Commander of Armed Forces of India?", o: ["Prime Minister", "President", "Defense Minister", "Home Minister"], a: "President" },
+  { q: "Which is the largest tea producing state of India?", o: ["Kerala", "Assam", "West Bengal", "Tamil Nadu"], a: "Assam" },
+  { q: "Which blood group is universal recipient?", o: ["A", "B", "AB", "O"], a: "AB" },
+  { q: "Which planet is called Morning Star?", o: ["Mars", "Venus", "Jupiter", "Mercury"], a: "Venus" },
+  { q: "What is the chemical formula of common salt?", o: ["KCl", "NaCl", "MgCl", "CaCl"], a: "NaCl" },
+  { q: "Which vitamin is found in citrus fruits?", o: ["A", "B", "C", "D"], a: "C" },
+  { q: "Which is the longest river of India?", o: ["Ganga", "Yamuna", "Godavari", "Krishna"], a: "Ganga" },
+  { q: "Which animal is national heritage animal of India?", o: ["Tiger", "Elephant", "Lion", "Peacock"], a: "Elephant" },
+  { q: "Who was the first woman Prime Minister of India?", o: ["Pratibha Patil", "Sarojini Naidu", "Indira Gandhi", "Sonia Gandhi"], a: "Indira Gandhi" },
+    { q: "Which is the largest lake in India?", o: ["Dal Lake", "Wular Lake", "Chilka Lake", "Sambhar Lake"], a: "Chilka Lake" },
+  { q: "Which is the longest dam in India?", o: ["Tehri", "Bhakra Nangal", "Hirakud", "Sardar Sarovar"], a: "Hirakud" },
+  { q: "Which city is known as Silicon Valley of India?", o: ["Delhi", "Hyderabad", "Chennai", "Bengaluru"], a: "Bengaluru" },
+  { q: "Which is the oldest mountain range in India?", o: ["Himalayas", "Vindhyas", "Aravallis", "Satpura"], a: "Aravallis" },
+  { q: "What is the currency of Bangladesh?", o: ["Rupee", "Taka", "Dinar", "Ringgit"], a: "Taka" },
+  { q: "Which organ purifies blood?", o: ["Heart", "Lungs", "Liver", "Kidneys"], a: "Kidneys" },
+  { q: "Which is the longest canal in India?", o: ["Ganga Canal", "Indira Gandhi Canal", "Upper Bari Canal", "Sutlej Canal"], a: "Indira Gandhi Canal" },
+  { q: "What is the national tree of India?", o: ["Neem", "Peepal", "Banyan", "Mango"], a: "Banyan" },
+  { q: "Which is the largest gland in the human body?", o: ["Thyroid", "Pituitary", "Liver", "Pancreas"], a: "Liver" },
+  { q: "Which state has highest literacy rate in India?", o: ["Kerala", "Tamil Nadu", "Punjab", "Maharashtra"], a: "Kerala" },
+  { q: "Which planet is known as Earth's twin?", o: ["Mars", "Venus", "Mercury", "Saturn"], a: "Venus" },
+  { q: "Which is the longest river in South India?", o: ["Godavari", "Krishna", "Kaveri", "Mahanadi"], a: "Godavari" },
+  { q: "Which element is essential for photosynthesis?", o: ["Calcium", "Nitrogen", "Phosphorus", "Magnesium"], a: "Magnesium" },
+  { q: "What is the national aquatic animal of India?", o: ["Sea turtle", "Dolphin", "Whale", "Crocodile"], a: "Dolphin" },
+  { q: "Which Indian city is called City of Lakes?", o: ["Udaipur", "Jaipur", "Bhopal", "Kochi"], a: "Udaipur" },
+  { q: "Who built Qutub Minar?", o: ["Akbar", "Qutbuddin Aibak", "Shah Jahan", "Humayun"], a: "Qutbuddin Aibak" },
+  { q: "Which river is called Sorrow of Bihar?", o: ["Ganga", "Ghaghra", "Kosi", "Son"], a: "Kosi" },
+  { q: "Which state is largest in area in India?", o: ["Madhya Pradesh", "Maharashtra", "Uttar Pradesh", "Rajasthan"], a: "Rajasthan" },
+  { q: "Which is the national song of India?", o: ["Vande Mataram", "Jana Gana Mana", "Saare Jahan Se Achha", "Mile Sur"], a: "Vande Mataram" },
+  { q: "What is the national reptile of India?", o: ["Python", "Cobra", "Monitor Lizard", "Crocodile"], a: "King Cobra" },
+  { q: "Which city is famous for Diamond cutting?", o: ["Jaipur", "Mumbai", "Surat", "Kolkata"], a: "Surat" },
+  { q: "Which Mughal emperor built Red Fort?", o: ["Akbar", "Humayun", "Shah Jahan", "Aurangzeb"], a: "Shah Jahan" },
+  { q: "Which place is called Scotland of India?", o: ["Shillong", "Munnar", "Coorg", "Ooty"], a: "Coorg" },
+  { q: "Which is the largest freshwater lake in Asia?", o: ["Dal Lake", "Wular Lake", "Lake Baikal", "Tonle Sap"], a: "Wular Lake" },
+  { q: "Which is the largest zoo in India?", o: ["Nandankanan", "Mysore Zoo", "Arignar Anna", "Alipore Zoo"], a: "Arignar Anna" },
+  { q: "Who is called Father of Green Revolution?", o: ["Kurien", "Swaminathan", "Verghese", "Nehru"], a: "M. S. Swaminathan" },
+  { q: "Who invented Zero?", o: ["Ramanujan", "Aryabhata", "Bhaskara", "Brahmagupta"], a: "Aryabhata" },
+  { q: "Which country is known as Land of Rising Sun?", o: ["Korea", "China", "Japan", "Thailand"], a: "Japan" },
+  { q: "What is the study of weather called?", o: ["Zoology", "Geology", "Meteorology", "Ecology"], a: "Meteorology" },
+  { q: "Which vitamin is known as sunshine vitamin?", o: ["A", "B", "C", "D"], a: "D" },
+  { q: "Which is the largest coffee producing state in India?", o: ["Kerala", "Assam", "Karnataka", "Tamil Nadu"], a: "Karnataka" },
+  { q: "Which instrument is used to measure pressure?", o: ["Thermometer", "Barometer", "Anemometer", "Altimeter"], a: "Barometer" },
+  { q: "Which is the largest plateau in India?", o: ["Malwa", "Chotanagpur", "Deccan", "Baghelkhand"], a: "Deccan Plateau" },
+  { q: "Which city is known as City of Nawabs?", o: ["Hyderabad", "Lucknow", "Bhopal", "Patna"], a: "Lucknow" },
+  { q: "Who wrote 'Discovery of India'?", o: ["Ambedkar", "Mahatma Gandhi", "Nehru", "Patel"], a: "Nehru" },
+  { q: "Which state is known as Spice Garden of India?", o: ["Goa", "Tamil Nadu", "Kerala", "Karnataka"], a: "Kerala" },
+  { q: "What is the longest river in the world?", o: ["Amazon", "Mississippi", "Yangtze", "Nile"], a: "Nile" },
+  { q: "What is the national emblem of India?", o: ["Tiger", "Ashoka Lion", "Elephant", "Lotus"], a: "Ashoka Lion" },
+  { q: "Which festival is harvest festival of Punjab?", o: ["Pongal", "Bihu", "Onam", "Baisakhi"], a: "Baisakhi" },
+  { q: "Which language has most native speakers?", o: ["English", "Spanish", "Hindi", "Mandarin"], a: "Mandarin" },
+  { q: "Which is the longest wall in the world?", o: ["Berlin Wall", "Hadrian’s Wall", "Great Wall of China", "Kumbhalgarh Wall"], a: "Great Wall of China" },
+  { q: "Who was first woman President of India?", o: ["Pratibha Patil", "Sarojini Naidu", "Indira Gandhi", "Sushma Swaraj"], a: "Pratibha Patil" },
+  { q: "Which country invented tea?", o: ["India", "England", "Japan", "China"], a: "China" },
+  { q: "Which city is known as City of Pearls?", o: ["Jaipur", "Hyderabad", "Surat", "Pune"], a: "Hyderabad" },
+  { q: "Which element is liquid at room temperature?", o: ["Bromine", "Iodine", "Chlorine", "Fluorine"], a: "Bromine" },
+  { q: "Who is known as Father of Indian Constitution?", o: ["Rajendra Prasad", "Mahatma Gandhi", "BR Ambedkar", "Nehru"], a: "BR Ambedkar" },
+  { q: "Which Indian festival celebrates brother-sister bond?", o: ["Holi", "Diwali", "Raksha Bandhan", "Baisakhi"], a: "Raksha Bandhan" },
+  { q: "Which continent is largest by area?", o: ["Europe", "Africa", "North America", "Asia"], a: "Asia" },
+  { q: "Which metal is liquid at room temperature?", o: ["Copper", "Silver", "Mercury", "Zinc"], a: "Mercury" },
+  { q: "Which day is celebrated as Earth Day?", o: ["March 21", "June 5", "April 22", "July 11"], a: "April 22" },
+  { q: "What is the national calendar of India?", o: ["Gregorian", "Hijri", "Saka", "Bikrami"], a: "Saka" },
+  { q: "Which is the smallest ocean?", o: ["Indian", "Arctic", "Atlantic", "Pacific"], a: "Arctic" },
+  { q: "Which state is known for Bihu dance?", o: ["West Bengal", "Odisha", "Mizoram", "Assam"], a: "Assam" },
+  { q: "Which animal is the largest carnivore on land?", o: ["Lion", "Crocodile", "Tiger", "Polar Bear"], a: "Polar Bear" },
+  { q: "Which is the oldest Veda?", o: ["Atharva", "Sama", "Rig", "Yajur"], a: "Rig" },
+  { q: "What is study of rocks called?", o: ["Ecology", "Geology", "Mineralogy", "Zoology"], a: "Geology" },
+  { q: "Which is the tallest waterfall?", o: ["Niagara", "Victoria", "Jog Falls", "Angel Falls"], a: "Angel Falls" },
+  { q: "Which festival is known as harvest festival of Tamil Nadu?", o: ["Onam", "Ugadi", "Pongal", "Bihu"], a: "Pongal" },
+  { q: "Which instrument measures temperature?", o: ["Thermometer", "Barometer", "Hygrometer", "Altimeter"], a: "Thermometer" },
+  { q: "Which country is largest producer of rice?", o: ["India", "Indonesia", "Vietnam", "China"], a: "China" },
+  { q: "What is human body’s largest organ?", o: ["Heart", "Liver", "Skin", "Brain"], a: "Skin" },
+  { q: "Which part of eye controls light?", o: ["Cornea", "Lens", "Pupil", "Iris"], a: "Iris" },
+  { q: "Which is the largest Muslim country by population?", o: ["Saudi Arabia", "Pakistan", "Indonesia", "Turkey"], a: "Indonesia" },
+  { q: "Which river flows through Paris?", o: ["Danube", "Seine", "Thames", "Rhine"], a: "Seine" },
+  { q: "Which is the largest city in India by population?", o: ["Delhi", "Chennai", "Mumbai", "Kolkata"], a: "Mumbai" },
+  { q: "Which Indian state has longest coastline?", o: ["Maharashtra", "Andhra Pradesh", "Gujarat", "Odisha"], a: "Gujarat" },
+  { q: "Which is the longest bone in human body?", o: ["Femur", "Humerus", "Ulna", "Radius"], a: "Femur" },
+  { q: "Which vitamin is important for blood clotting?", o: ["A", "C", "K", "D"], a: "K" },
+  { q: "What is study of plants called?", o: ["Botany", "Zoology", "Geology", "Meteorology"], a: "Botany" },
+  { q: "Which river is sacred in Sikhism?", o: ["Sutlej", "Beas", "Ganga", "Godavari"], a: "Beas" },
+  { q: "Which part of brain controls balance?", o: ["Cerebrum", "Cerebellum", "Medulla", "Thalamus"], a: "Cerebellum" },
+  { q: "Which Indian classical dance comes from Odisha?", o: ["Bharatanatyam", "Kathak", "Manipuri", "Odissi"], a: "Odissi" },
+  { q: "Which scientist developed Periodic Table?", o: ["Newton", "Mendeleev", "Bohr", "Curie"], a: "Mendeleev" },
+  { q: "Which city hosted 2020 Olympics?", o: ["Beijing", "London", "Rio", "Tokyo"], a: "Tokyo" },
+  { q: "Which is the longest railway platform?", o: ["Kharagpur", "Gorakhpur", "Howrah", "Lucknow"], a: "Hubballi" },
+  { q: "Which state is known as Jewel of India?", o: ["Kerala", "Goa", "Manipur", "Assam"], a: "Manipur" },
+  { q: "Which city is called City of Palaces?", o: ["Jodhpur", "Jaipur", "Kolkata", "Mysuru"], a: "Kolkata" },
+  { q: "Which organ controls emotions?", o: ["Heart", "Brain", "Liver", "Lungs"], a: "Brain" },
+  { q: "Which country has highest population?", o: ["India", "USA", "China", "Indonesia"], a: "China" },
+  { q: "Which is the tallest statue in India?", o: ["Bahubali", "Shivaji", "Statue of Unity", "Vivekananda"], a: "Statue of Unity" },
+  { q: "Who is known as Frontier Gandhi?", o: ["Bhagat Singh", "Khan Abdul Ghaffar Khan", "Nehru", "Rajguru"], a: "Khan Abdul Ghaffar Khan" },
+  { q: "Which is the largest landlocked country?", o: ["Kazakhstan", "Afghanistan", "Chad", "Niger"], a: "Kazakhstan" },
+  { q: "Which river is called Dakshina Ganga?", o: ["Godavari", "Krishna", "Kaveri", "Brahmaputra"], a: "Godavari" },
+     { q: "Which river is called the Sorrow of Bihar?", o: ["Yamuna", "Ganga", "Kosi", "Son"], a: "Kosi" },
+  { q: "Which country gifted the Statue of Liberty to the USA?", o: ["Germany", "Italy", "France", "Canada"], a: "France" },
+  { q: "Which is the longest wall in the world?", o: ["Berlin Wall", "Hadrian's Wall", "Great Wall of China", "Western Wall"], a: "Great Wall of China" },
+  { q: "Which Indian state has the largest area?", o: ["Uttar Pradesh", "Maharashtra", "Rajasthan", "Madhya Pradesh"], a: "Rajasthan" },
+  { q: "What is the chemical symbol for sodium?", o: ["Na", "So", "S", "Sa"], a: "Na" },
+  { q: "Which day is celebrated as World Environment Day?", o: ["June 5", "April 22", "March 21", "July 11"], a: "June 5" },
+  { q: "Who wrote the national anthem of India?", o: ["Bankim Chandra", "Rabindranath Tagore", "Premchand", "Mulk Raj Anand"], a: "Rabindranath Tagore" },
+  { q: "Who invented the airplane?", o: ["Edison", "Graham Bell", "Wright Brothers", "Tesla"], a: "Wright Brothers" },
+  { q: "Which organ purifies blood in the human body?", o: ["Heart", "Kidney", "Lungs", "Liver"], a: "Kidney" },
+  { q: "Who is the CEO of Tesla?", o: ["Bill Gates", "Jeff Bezos", "Elon Musk", "Sundar Pichai"], a: "Elon Musk" },
+  { q: "What is the capital of Australia?", o: ["Sydney", "Melbourne", "Canberra", "Perth"], a: "Canberra" },
+  { q: "Which sport is PV Sindhu associated with?", o: ["Cricket", "Hockey", "Tennis", "Badminton"], a: "Badminton" },
+  { q: "Which continent has the most countries?", o: ["Europe", "Africa", "Asia", "South America"], a: "Africa" },
+  { q: "Which is called the City of Lakes?", o: ["Jaipur", "Udaipur", "Agra", "Varanasi"], a: "Udaipur" },
+  { q: "Which Indian state has the highest literacy rate?", o: ["Kerala", "Tamil Nadu", "Punjab", "Haryana"], a: "Kerala" },
+  { q: "Which is the smallest ocean?", o: ["Indian", "Arctic", "Pacific", "Atlantic"], a: "Arctic" },
+  { q: "Which vitamin is known as Ascorbic Acid?", o: ["A", "B", "C", "D"], a: "C" },
+  { q: "What is the square root of 169?", o: ["11", "12", "13", "14"], a: "13" },
+  { q: "Which animal is called the Ship of the Desert?", o: ["Horse", "Camel", "Donkey", "Elephant"], a: "Camel" },
+  { q: "Which Indian festival is known as Festival of Colors?", o: ["Diwali", "Eid", "Holi", "Baisakhi"], a: "Holi" },
+  { q: "Which is the tallest animal?", o: ["Elephant", "Giraffe", "Camel", "Horse"], a: "Giraffe" },
+  { q: "Which planet is known as Earth's Twin?", o: ["Mars", "Mercury", "Venus", "Jupiter"], a: "Venus" },
+  { q: "Which is the national aquatic animal of India?", o: ["Dolphin", "Shark", "Crocodile", "Turtle"], a: "Dolphin" },
+  { q: "What is the full form of CPU?", o: ["Central Processing Unit", "Central Power Unit", "Control Process Unit", "Computer Power Unit"], a: "Central Processing Unit" },
+  { q: "Who is known as Bharat Ratna Missile Man?", o: ["APJ Abdul Kalam", "Vikram Sarabhai", "Satish Dhawan", "Homi Bhabha"], a: "APJ Abdul Kalam" },
+  { q: "Who is called the Iron Lady of India?", o: ["Sarojini Naidu", "Indira Gandhi", "Sucheta Kriplani", "Annie Besant"], a: "Indira Gandhi" },
+  { q: "Who invented the zero?", o: ["Aryabhata", "Bhaskara", "Varahamihira", "Brahmagupta"], a: "Aryabhata" },
+  { q: "Which is the most populous country?", o: ["India", "USA", "China", "Indonesia"], a: "China" },
+  { q: "Where is Charminar located?", o: ["Delhi", "Hyderabad", "Lucknow", "Bhopal"], a: "Hyderabad" },
+  { q: "What is the currency of Germany?", o: ["Franc", "Euro", "Mark", "Dollar"], a: "Euro" },
+  { q: "Which river is sacred to Sikhs?", o: ["Ganga", "Beas", "Yamuna", "Sutlej"], a: "Beas" },
+  { q: "Which is the biggest coffee producer country?", o: ["India", "Brazil", "Vietnam", "Colombia"], a: "Brazil" },
+  { q: "What is the largest gland in the human body?", o: ["Pancreas", "Thyroid", "Liver", "Adrenal"], a: "Liver" },
+  { q: "Which country is known as the Land of Rising Sun?", o: ["China", "Japan", "Korea", "Thailand"], a: "Japan" },
+  { q: "Who was the first woman Prime Minister of India?", o: ["Sonia Gandhi", "Vijaya Lakshmi Pandit", "Indira Gandhi", "Pratibha Patil"], a: "Indira Gandhi" },
+  { q: "Who wrote 'Discovery of India'?", o: ["Mahatma Gandhi", "Sardar Patel", "Subhash Bose", "Jawaharlal Nehru"], a: "Jawaharlal Nehru" },
+  { q: "Which Indian city is famous for Diamond Trade?", o: ["Hyderabad", "Kolkata", "Jaipur", "Surat"], a: "Surat" },
+  { q: "Which is the smallest bird?", o: ["Sparrow", "Crow", "Hummingbird", "Parrot"], a: "Hummingbird" },
+  { q: "Which is the largest plateau in the world?", o: ["Deccan Plateau", "Patagonia", "Columbia", "Tibetan Plateau"], a: "Tibetan Plateau" },
+  { q: "Which is the hottest continent?", o: ["Asia", "Africa", "Australia", "South America"], a: "Africa" },
+  { q: "What is the study of stars called?", o: ["Geology", "Meteorology", "Astronomy", "Biology"], a: "Astronomy" },
+  { q: "Who invented electric bulb?", o: ["Newton", "Faraday", "Edison", "Tesla"], a: "Edison" },
+  { q: "Which blood group is universal recipient?", o: ["A", "B", "AB", "O"], a: "AB" },
+  { q: "Which is the largest inland sea?", o: ["Red Sea", "Baltic Sea", "Caspian Sea", "Dead Sea"], a: "Caspian Sea" },
+  { q: "Which place is called Queen of Hills?", o: ["Nainital", "Darjeeling", "Mussoorie", "Shimla"], a: "Darjeeling" },
+  { q: "Who invented dynamite?", o: ["Albert Einstein", "Alfred Nobel", "Max Planck", "Edison"], a: "Alfred Nobel" },
+  { q: "Which gas is known as Laughing Gas?", o: ["CO2", "Oxygen", "Nitrous Oxide", "Hydrogen"], a: "Nitrous Oxide" },
+  { q: "Which river flows through Paris?", o: ["Danube", "Rhine", "Seine", "Thames"], a: "Seine" },
+  { q: "What is the largest volcano?", o: ["Etna", "Krakatoa", "Mauna Loa", "Vesuvius"], a: "Mauna Loa" },
+  { q: "Who was the first woman to go to space?", o: ["Kalpana Chawla", "Valentina Tereshkova", "Sunita Williams", "Sally Ride"], a: "Valentina Tereshkova" },
+  { q: "What is the pH value of neutral water?", o: ["5", "6", "7", "8"], a: "7" },
+  { q: "Which is the world’s longest dam?", o: ["Bhakra", "Hirakud", "Tehri", "Sardar Sarovar"], a: "Hirakud" },
+  { q: "Which is the biggest Muslim country by population?", o: ["Saudi Arabia", "India", "Pakistan", "Indonesia"], a: "Indonesia" },
+  { q: "Which is the longest bone in human body?", o: ["Humerus", "Radius", "Femur", "Ulna"], a: "Femur" },
+  { q: "What is the SI unit of force?", o: ["Joule", "Watt", "Newton", "Pascal"], a: "Newton" },
+  { q: "Which river is lifeline of Egypt?", o: ["Amazon", "Nile", "Ganges", "Volga"], a: "Nile" },
+  { q: "Which city is called Silicon Valley of India?", o: ["Pune", "Bangalore", "Hyderabad", "Gurgaon"], a: "Bangalore" },
+  { q: "Who was the first Indian woman to climb Mt Everest?", o: ["Bachendri Pal", "Kalpana Chawla", "Arunima Sinha", "Sunita Williams"], a: "Bachendri Pal" },
+  { q: "Which Mughal emperor built Red Fort?", o: ["Akbar", "Aurangzeb", "Babur", "Shah Jahan"], a: "Shah Jahan" },
+  { q: "Which is called Land of Thousand Lakes?", o: ["Norway", "Sweden", "Finland", "Denmark"], a: "Finland" },
+  { q: "Which state is known for Tea Gardens?", o: ["Kerala", "Assam", "Bihar", "Punjab"], a: "Assam" },
+  { q: "Which vitamin helps in blood clotting?", o: ["A", "B", "C", "K"], a: "K" },
+  { q: "Who invented Internet?", o: ["Tim Berners-Lee", "Steve Jobs", "Bill Gates", "Mark Zuckerberg"], a: "Tim Berners-Lee" },
+  { q: "Which is the longest river in India?", o: ["Yamuna", "Brahmaputra", "Godavari", "Ganga"], a: "Ganga" },
+  { q: "Which is the smallest state of India by area?", o: ["Goa", "Tripura", "Sikkim", "Manipur"], a: "Goa" },
+  { q: "Which is the largest state of USA?", o: ["Texas", "California", "Alaska", "Montana"], a: "Alaska" },
+  { q: "Who was the first Asian to win Nobel Prize?", o: ["CV Raman", "Rabindranath Tagore", "Hargobind Khurana", "APJ Kalam"], a: "Rabindranath Tagore" },
+  { q: "Which is the national tree of India?", o: ["Mango", "Neem", "Banyan", "Peepal"], a: "Banyan" },
+  { q: "Who discovered blood circulation?", o: ["Galileo", "Harvey", "Newton", "Vesalius"], a: "Harvey" },
+  { q: "What is the longest railway platform in India?", o: ["Howrah", "Kharagpur", "Gorakhpur", "Bangalore"], a: "Gorakhpur" },
+  { q: "What is the hardest known material?", o: ["Iron", "Diamond", "Steel", "Titanium"], a: "Diamond" },
+  { q: "Which country is called Land of Maple Leaf?", o: ["USA", "Norway", "Canada", "Sweden"], a: "Canada" },
+  { q: "Which element has symbol K?", o: ["Sodium", "Potassium", "Calcium", "Iron"], a: "Potassium" },
+  { q: "Who was known as Sher Shah?", o: ["Sher Shah Suri", "Akbar", "Babur", "Humayun"], a: "Sher Shah Suri" },
+  { q: "Which Indian state is called Spice Garden?", o: ["Kerala", "Assam", "Tamil Nadu", "Karnataka"], a: "Kerala" }
+];
+
+
+
+let current = 0, score = 0, wrong = 0, timerInterval;
+
+function startQuiz(e) {
+  animateBounce(e?.target);
+  document.getElementById("startPage").style.display = "none";
+  document.getElementById("quiz").style.display = "block";
+  current = 0;
+  score = 0;
+  wrong = 0;
+  showQuestion();
+}
+
+function showQuestion() {
+  clearInterval(timerInterval);
+  if (current >= questions.length) {
+    document.getElementById("quiz").innerHTML = `
+      <h2>Game Over!</h2>
+      <p>Correct: ${score} | Wrong: ${wrong}</p>
+      <button class='button' onclick='startQuiz(event)'>Restart</button>
+      <button class='button' onclick='share(event)'>Share</button>
+      <a class='subscribe' href='https://youtube.com/@nitish7629' target='_blank' onclick='animateBounce(event.target)'>📺 Subscribe</a>`;
+    return;
+  }
+  let q = questions[current];
+  let html = `<div class='question'>${q.q}</div>`;
+  q.o.forEach(opt => {
+    html += `<div class='option' onclick='checkAnswer(this, "${opt}")'>${opt}</div>`;
+  });
+  html += `<div style='margin-top:20px;'>
+    <button class='button' onclick='share(event)'>Share</button>
+    <a class='subscribe' href='https://youtube.com/@nitish7629' target='_blank' onclick='animateBounce(event.target)'>📺 Subscribe</a>
+  </div>`;
+  document.getElementById("quiz").innerHTML = `
+    <div id='timer'></div>
+    <div id='progress'><div id='progress-bar' style="width:${(current/questions.length)*100}%"></div></div>
+    ${html}`;
+  speak(q.q);
+  startTimer();
+}
+
+function checkAnswer(el, opt) {
+  const isCorrect = opt === questions[current].a;
+  if (isCorrect) {
+    score++;
+    el.style.background = '#32CD32';
+    playSound('correct');
+    confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+    speak("Correct");
+  } else {
+    wrong++;
+    el.style.background = '#DC143C';
+    playSound('wrong');
+    speak("Wrong");
+  }
+  current++;
+  updateProgress();
+  setTimeout(showQuestion, 1000);
+}
+
+function speak(text) {
+  let utterance = new SpeechSynthesisUtterance(text);
+  speechSynthesis.speak(utterance);
+}
+
+function playSound(type) {
+  const audio = document.getElementById(type === "correct" ? "correctSound" : "wrongSound");
+  if (audio) {
+    audio.currentTime = 0;
+    audio.play().catch(e => console.log("audio play blocked", e));
+  }
+}
+
+function startTimer() {
+  let time = 10;
+  const timerEl = document.getElementById("timer");
+  timerEl.textContent = `⏳ Time Left: ${time}s`;
+  timerInterval = setInterval(() => {
+    time--;
+    timerEl.textContent = `⏳ Time Left: ${time}s`;
+    if (time <= 0) {
+      clearInterval(timerInterval);
+      wrong++;
+      speak("Time up");
+      current++;
+      updateProgress();
+      showQuestion();
+    }
+  }, 1000);
+}
+
+function share(evt) {
+  animateBounce(evt?.target);
+  window.open(`https://wa.me/?text=Try this quiz: ${location.href}`);
+}
+
+function animateBounce(btn) {
+  if (!btn) return;
+  btn.style.animation = "bounce 0.5s";
+  btn.addEventListener("animationend", () => btn.style.animation = "", { once: true });
+}
+
+function updateProgress() {
+  const bar = document.getElementById("progress-bar");
+  if (bar) bar.style.width = `${(current/questions.length)*100}%`;
+}
+</script>
+</body></html>
